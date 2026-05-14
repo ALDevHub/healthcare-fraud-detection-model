@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare Fraud Detection System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: linear-gradient(135deg, #1e3a8a, #0d9488);
+            padding: 15px 30px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+
+        .logo h2 {
+            font-size: 18px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Form Card */
+        .form-card {
+            background: white;
+            border-radius: 0 0 25px 25px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        /* Header */
+        .form-header {
+            background: linear-gradient(135deg, #1e3a8a, #0d9488);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .form-header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .form-header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        /* Form Body */
+        .form-body {
+            padding: 40px;
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        label i {
+            margin-right: 8px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #0d9488;
+            box-shadow: 0 0 0 3px rgba(13,148,136,0.1);
+        }
+
+        /* Radio Group */
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            padding: 10px 0;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .radio-option input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* Submit Button */
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(135deg, #1e3a8a, #0d9488);
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(13,148,136,0.4);
+        }
+
+        /* Result Section */
+        .result-card {
+            background: white;
+            border-radius: 25px;
+            margin-top: 30px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            display: none;
+        }
+
+        .result-card.show {
+            display: block;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fraud-result {
+            text-align: center;
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .fraud-result.fraud {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            border: 2px solid #dc2626;
+        }
+
+        .fraud-result.normal {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            border: 2px solid #10b981;
+        }
+
+        .result-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        .result-status {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .result-score {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .result-details {
+            text-align: left;
+            background: rgba(255,255,255,0.7);
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .result-details h4 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .result-details p {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .result-details ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .result-details li {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: rgba(255,255,255,0.8);
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navbar -->
+        <div class="navbar">
+            <div class="logo">
+                <h2>🩺 Healthcare Fraud Detection using PCA</h2>
+            </div>
+            <div class="user-info">
+                <span id="userNameDisplay">👤 User</span>
+                <div class="logout-btn" onclick="logout()">Logout</div>
+            </div>
+        </div>
+
+        <!-- Claim Form -->
+        <div class="form-card">
+            <div class="form-header">
+                <h1>📝 New Insurance Claim</h1>
+                <p>Fill in the details below to check for fraud</p>
+            </div>
+            
+            <div class="form-body">
+                <form id="claimForm">
+                    <!-- Patient Information -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>👤 First Name</label>
+                            <input type="text" id="firstName" placeholder="Enter first name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>👤 Last Name</label>
+                            <input type="text" id="lastName" placeholder="Enter last name" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>🆔 Claim ID</label>
+                            <input type="text" id="IP_CLM_ID" placeholder="Enter Claim ID" value="" required>
+                        </div>
+                        <div class="form-group">
+                            <label>🏷️ DRG Quintile Payment Code</label>
+                            <select id="IP_DRG_QUINT_PMT_CD" required>
+								<option value="">Select Payment Code</option>
+								<option value="1">1 - Lowest Payment Group</option>
+								<option value="2">2 - Low Payment Group</option>
+								<option value="3">3 - Medium Payment Group</option>
+								<option value="4">4 - High Payment Group</option>
+								<option value="5">5 - Highest Payment Group</option>
+							</select>
+                        </div>
+                    </div>
+
+                    <!-- Demographic -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>🎂 Age Group</label>
+                             <select id="BENE_AGE_CAT_CD" required>
+								<option value="">Select Age Group</option>
+								<option value="1">Under 65</option>
+								<option value="2">65 to 69</option>
+								<option value="3">70 to 74</option>
+								<option value="4">75 to 79</option>
+								<option value="5">80 to 84</option>
+								<option value="6">85 and above</option>
+							</select>
+                        </div>
+                        <div class="form-group">
+                            <label>⚥ Gender</label>
+                            
+							<select id="BENE_SEX_IDENT_CD" required>
+								<option value="">Select Gender</option>
+								<option value="1">Male</option>
+								<option value="2">Female</option>
+							</select>
+                            
+                        </div>
+                    </div>
+
+                    <!-- Claim Details -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>🏥 Diagnosis Related Group</label>
+                            <select id="IP_CLM_BASE_DRG_CD" required>
+
+								<option value="">Select DRG Code</option>
+
+								<option value="1">1 - Heart transplant or implant of heart assist system</option>
+								<option value="2">2 - ECMO or trach w MV 96+ hrs</option>
+								<option value="3">3 - Trach w MV 96+ hrs w/o maj O.R.</option>
+								<option value="4">4 - Liver transplant</option>
+								<option value="5">5 - Lung transplant</option>
+								<option value="6">6 - Simultaneous pancreas/kidney transplant</option>
+								<option value="7">7 - Bone marrow transplant</option>
+								<option value="8">8 - Pancreas transplant</option>
+								<option value="9">9 - Tracheostomy for face,mouth & neck diagnoses</option>
+								<option value="10">10 - Intracranial vascular procedures</option>
+								<option value="11">11 - Cranio w major dev impl</option>
+								<option value="12">12 - Craniotomy & intracranial procedures</option>
+								<option value="13">13 - Spinal procedures</option>
+								<option value="14">14 - Ventricular shunt procedures</option>
+								<option value="15">15 - Carotid artery stent procedure</option>
+								<option value="16">16 - Extracranial procedures</option>
+								<option value="17">17 - Peripheral/Cranial nerve procedures</option>
+								<option value="18">18 - Spinal disorders & injuries</option>
+								<option value="19">19 - Nervous system neoplasms</option>
+								<option value="20">20 - Degenerative nervous disorders</option>
+								<option value="21">21 - Multiple sclerosis & cerebellar ataxia</option>
+								<option value="22">22 - Acute ischemic stroke</option>
+								<option value="23">23 - Intracranial hemorrhage</option>
+								<option value="24">24 - Nonspecific CVA</option>
+								<option value="25">25 - Transient ischemia</option>
+								<option value="26">26 - Cerebrovascular disorders</option>
+								<option value="27">27 - Cranial & peripheral nerve disorders</option>
+								<option value="28">28 - Viral meningitis</option>
+								<option value="29">29 - Hypertensive encephalopathy</option>
+								<option value="30">30 - Nontraumatic stupor & coma</option>
+
+								<option value="31">31 - Traumatic stupor & coma >1 hr</option>
+								<option value="32">32 - Traumatic stupor & coma</option>
+								<option value="33">33 - Concussion</option>
+								<option value="34">34 - Other nervous system disorders</option>
+								<option value="35">35 - Nervous system infections</option>
+								<option value="36">36 - Non-bacterial nervous infections</option>
+								<option value="37">37 - Seizures</option>
+								<option value="38">38 - Headaches</option>
+								<option value="39">39 - Orbital procedures</option>
+								<option value="40">40 - Intraocular procedures</option>
+								<option value="41">41 - Acute major eye infections</option>
+								<option value="42">42 - Neurological eye disorders</option>
+								<option value="43">43 - Other eye disorders</option>
+								<option value="44">44 - Major head & neck procedures</option>
+								<option value="45">45 - Cranial/facial procedures</option>
+								<option value="46">46 - ENT procedures</option>
+								<option value="47">47 - Mouth procedures</option>
+								<option value="48">48 - Salivary gland procedures</option>
+								<option value="49">49 - ENT malignancy</option>
+								<option value="50">50 - Dysequilibrium</option>
+
+								<option value="51">51 - Epistaxis</option>
+								<option value="52">52 - Otitis media & URI</option>
+								<option value="53">53 - Nasal trauma & deformity</option>
+								<option value="54">54 - Dental & Oral Diseases</option>
+								<option value="55">55 - Major chest procedures</option>
+								<option value="56">56 - Respiratory system O.R.</option>
+								<option value="57">57 - Pulmonary embolism</option>
+								<option value="58">58 - Respiratory infections</option>
+								<option value="59">59 - Respiratory neoplasms</option>
+								<option value="60">60 - Major chest trauma</option>
+
+								<option value="61">61 - Pleural effusion</option>
+								<option value="62">62 - Pulmonary edema & respiratory failure</option>
+								<option value="63">63 - COPD</option>
+								<option value="64">64 - Simple pneumonia & pleurisy</option>
+								<option value="65">65 - Interstitial lung disease</option>
+								<option value="66">66 - Pneumothorax</option>
+								<option value="67">67 - Bronchitis & asthma</option>
+								<option value="68">68 - Respiratory signs & symptoms</option>
+								<option value="69">69 - Other respiratory diagnoses</option>
+								<option value="70">70 - Respiratory diagnosis w ventilator support</option>
+
+								<option value="71">71 - Respiratory diagnosis ventilator <96 hrs</option>
+								<option value="72">72 - Cardiac valve procedures w cath</option>
+								<option value="73">73 - Cardiac valve procedures w/o cath</option>
+								<option value="74">74 - Cardiac defib implant w cath</option>
+								<option value="75">75 - Cardiac defib implant w/o shock</option>
+								<option value="76">76 - Cardiac defibrillator implant</option>
+								<option value="77">77 - Other cardiothoracic procedures</option>
+								<option value="78">78 - Coronary bypass w PTCA</option>
+								<option value="79">79 - Coronary bypass w cath</option>
+								<option value="80">80 - Coronary bypass w/o cath</option>
+
+								<option value="81">81 - Major cardiovascular procedures</option>
+								<option value="82">82 - Amputation for circulatory disorders</option>
+								<option value="83">83 - Permanent cardiac pacemaker implant</option>
+								<option value="84">84 - AICD lead & generator procedures</option>
+								<option value="85">85 - Perc cardiovascular procedure w stent</option>
+								<option value="86">86 - Perc cardiovascular procedure non-drug stent</option>
+								<option value="87">87 - Perc cardiovascular procedure w/o stent</option>
+								<option value="88">88 - Other vascular procedures</option>
+								<option value="89">89 - Upper limb amputation</option>
+								<option value="90">90 - Cardiac pacemaker replacement</option>
+
+								<option value="91">91 - Cardiac pacemaker revision</option>
+								<option value="92">92 - Other circulatory O.R. procedures</option>
+								<option value="93">93 - Acute myocardial infarction</option>
+								<option value="94">94 - Acute myocardial infarction expired</option>
+								<option value="95">95 - Circulatory disorders w cath</option>
+								<option value="96">96 - Endocarditis</option>
+								<option value="97">97 - Heart failure & shock</option>
+								<option value="98">98 - Deep vein thrombophlebitis</option>
+								<option value="99">99 - Cardiac arrest</option>
+								<option value="100">100 - Peripheral vascular disorders</option>
+
+								<option value="101">101 - Atherosclerosis</option>
+								<option value="102">102 - Hypertension</option>
+								<option value="103">103 - Cardiac congenital disorders</option>
+								<option value="104">104 - Cardiac arrhythmia</option>
+								<option value="105">105 - Angina pectoris</option>
+								<option value="106">106 - Syncope & collapse</option>
+								<option value="107">107 - Chest pain</option>
+								<option value="108">108 - Other circulatory diagnoses</option>
+								<option value="109">109 - Stomach & esophageal procedures</option>
+								<option value="110">110 - Major bowel procedures</option>
+
+								<option value="111">111 - Rectal resection</option>
+								<option value="112">112 - Peritoneal adhesiolysis</option>
+								<option value="113">113 - Appendectomy complicated</option>
+								<option value="114">114 - Appendectomy uncomplicated</option>
+								<option value="115">115 - Minor bowel procedures</option>
+								<option value="116">116 - Anal & stomal procedures</option>
+								<option value="117">117 - Hernia procedures</option>
+								<option value="118">118 - Other hernia procedures</option>
+								<option value="119">119 - Other digestive O.R.</option>
+								<option value="120">120 - Major esophageal disorders</option>
+
+								<option value="121">121 - Major GI disorders</option>
+								<option value="122">122 - Digestive malignancy</option>
+								<option value="123">123 - GI hemorrhage</option>
+								<option value="124">124 - Complicated peptic ulcer</option>
+								<option value="125">125 - Uncomplicated peptic ulcer</option>
+								<option value="126">126 - Inflammatory bowel disease</option>
+								<option value="127">127 - GI obstruction</option>
+								<option value="128">128 - Esophagitis & gastroenteritis</option>
+								<option value="129">129 - Other digestive diagnoses</option>
+
+								<option value="130">130 - Pancreas & liver procedures</option>
+								<option value="131">131 - Biliary tract procedures</option>
+								<option value="132">132 - Cholecystectomy w c.d.e.</option>
+								<option value="133">133 - Cholecystectomy w/o c.d.e.</option>
+								<option value="134">134 - Laparoscopic cholecystectomy</option>
+
+								<option value="135">135 - Hepatobiliary diagnostic procedures</option>
+								<option value="136">136 - Other hepatobiliary procedures</option>
+								<option value="137">137 - Cirrhosis & alcoholic hepatitis</option>
+								<option value="138">138 - Hepatobiliary malignancy</option>
+								<option value="139">139 - Pancreas disorders</option>
+								<option value="140">140 - Liver disorders</option>
+								<option value="141">141 - Biliary tract disorders</option>
+
+								<option value="142">142 - Combined spinal fusion</option>
+								<option value="143">143 - Spinal fusion w curvature</option>
+								<option value="144">144 - Spinal fusion except cervical</option>
+								<option value="145">145 - Major joint procedures</option>
+								<option value="146">146 - Wound debridement & skin graft</option>
+								<option value="147">147 - Revision hip/knee replacement</option>
+								<option value="148">148 - Major joint replacement</option>
+
+								<option value="149">149 - Cervical spinal fusion</option>
+								<option value="150">150 - Amputation musculoskeletal system</option>
+
+								<option value="311">311 - Ungroupable</option>
+
+								</select>
+                        </div>
+                        <div class="form-group">
+                             <label>📋 ICD9 Procedure Code</label>
+                             <select id="IP_CLM_ICD9_PRCDR_CD" required>
+									<option value="">Select Procedure</option>
+									<option value="">No procedure performed</option>
+
+									<option value="0">00 - Not elsewhere classified</option>
+									<option value="1">01 - Incise-excis brain/skull</option>
+									<option value="2">02 - Other skull/brain ops</option>
+									<option value="3">03 - Spinal cord & canal ops</option>
+									<option value="4">04 - Cran & periph nerve ops</option>
+									<option value="5">05 - Sympathetic nerve ops</option>
+									<option value="6">06 - Thyroid/parathyroid ops</option>
+									<option value="7">07 - Oth endocrine glnd ops</option>
+									<option value="8">08 - Eyelid operations</option>
+									<option value="9">09 - Lacrimal system op</option>
+									<option value="10">10 - Conjunctival operations</option>
+									<option value="11">11 - Operations on cornea</option>
+									<option value="12">12 - Anterior segment ops</option>
+									<option value="13">13 - Operations on lens</option>
+									<option value="14">14 - Posterior segment ops</option>
+									<option value="15">15 - Extraocular muscle ops</option>
+									<option value="16">16 - Orbit/eyeball ops</option>
+									<option value="17">17 - Other miscellaneous procedures</option>
+									<option value="18">18 - External ear operations</option>
+									<option value="19">19 - Middle ear reconstruct</option>
+									<option value="20">20 - Other mid & inner ear op</option>
+									<option value="21">21 - Operations on nose</option>
+									<option value="22">22 - Nasal sinus operations</option>
+									<option value="23">23 - Tooth removal & restorat</option>
+									<option value="24">24 - Oth ops on teeth & gums</option>
+									<option value="25">25 - Operations on tongue</option>
+									<option value="26">26 - Salivary gland operation</option>
+									<option value="27">27 - Other mouth & face ops</option>
+									<option value="28">28 - Tonsil & adenoid ops</option>
+									<option value="29">29 - Operations on pharynx</option>
+									<option value="30">30 - Excision of larynx</option>
+									<option value="31">31 - Larynx trachea ops nec</option>
+									<option value="32">32 - Lung & bronchus excision</option>
+									<option value="33">33 - Other bronchial/lung ops</option>
+									<option value="34">34 - Thorax ops except lung</option>
+									<option value="35">35 - Heart valves & septa ops</option>
+									<option value="36">36 - Ops on heart vessels</option>
+									<option value="37">37 - Other heart/pericard ops</option>
+									<option value="38">38 - Vessel inc/excis/occlus</option>
+									<option value="39">39 - Other ops on vessels</option>
+									<option value="40">40 - Lymphatic system ops</option>
+									<option value="41">41 - Bone marrow & spleen ops</option>
+									<option value="42">42 - Operations on esophagus</option>
+									<option value="43">43 - Gastric incision/excis</option>
+									<option value="44">44 - Other gastric operations</option>
+									<option value="45">45 - Intest incis/excis/anast</option>
+									<option value="46">46 - Other intestinal ops</option>
+									<option value="47">47 - Operations on appendix</option>
+									<option value="48">48 - Rectal & perirectal ops</option>
+									<option value="49">49 - Operations on anus</option>
+									<option value="50">50 - Operations on liver</option>
+									<option value="51">51 - Biliary tract operation</option>
+									<option value="52">52 - Operations on pancreas</option>
+									<option value="53">53 - Repair of hernia</option>
+									<option value="54">54 - Other abdomen region ops</option>
+									<option value="55">55 - Operations on kidney</option>
+									<option value="56">56 - Operations on ureter</option>
+									<option value="57">57 - Urinary bladder ops</option>
+									<option value="58">58 - Operations on urethra</option>
+									<option value="59">59 - Other urinary tract ops</option>
+									<option value="60">60 - Prostate & semin ves ops</option>
+									<option value="61">61 - Scrotum & tunica vag ops</option>
+									<option value="62">62 - Operations on testes</option>
+									<option value="63">63 - Sperm cord/epid/vas ops</option>
+									<option value="64">64 - Operations on penis</option>
+									<option value="65">65 - Operations on ovary</option>
+									<option value="66">66 - Fallopian tube operation</option>
+									<option value="67">67 - Operations on cervix</option>
+									<option value="68">68 - Other uterine incis/exc</option>
+									<option value="69">69 - Other uterus/support ops</option>
+									<option value="70">70 - Vagina & cul-de-sac ops</option>
+									<option value="71">71 - Vulvar & perineal ops</option>
+									<option value="72">72 - Forcep/vac/breech deliv</option>
+									<option value="73">73 - Assist/induce deliv nec</option>
+									<option value="74">74 - C-section/removal fetus</option>
+									<option value="75">75 - Other obstetric ops</option>
+									<option value="76">76 - Facial bone & joint ops</option>
+									<option value="77">77 - Incis/excis/div bone nec</option>
+									<option value="78">78 - Oth bone ops excpt face</option>
+									<option value="79">79 - Reduction fx/dislocation</option>
+									<option value="80">80 - Incision/excision joint</option>
+									<option value="81">81 - Joint repair</option>
+									<option value="82">82 - Hand muscl/tend/fasc ops</option>
+									<option value="83">83 - Other mus/ten/fas/bur op</option>
+									<option value="84">84 - Other musculoskelet proc</option>
+									<option value="85">85 - Operations on the breast</option>
+									<option value="86">86 - Skin & subq operations</option>
+									<option value="87">87 - Diagnostic radiology</option>
+									<option value="88">88 - Other dx radiology</option>
+									<option value="89">89 - Interview/consult/exam</option>
+									<option value="90">90 - Microscopic exam--i</option>
+									<option value="91">91 - Microscopic exam--ii</option>
+									<option value="92">92 - Nuclear medicine</option>
+									<option value="93">93 - Pt, rehab & related proc</option>
+									<option value="94">94 - Psyche related procedure</option>
+									<option value="95">95 - Eye & ear dx/treatment</option>
+									<option value="96">96 - Non-op intubat & irrigat</option>
+									<option value="97">97 - Replace & remov devices</option>
+									<option value="98">98 - Nonop remove foreign bod</option>
+									<option value="99">99 - Other nonoperative proc</option>
+
+								</select>
+						</div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>🛏️ Length of Stay</label>
+                            <select id="IP_CLM_DAYS_CD" required>
+								<option value="">Select Stay Duration</option>
+								<option value="1">1 Day</option>
+								<option value="2">2 to 3 Days</option>
+								<option value="3">4 to 7 Days</option>
+								<option value="4">8 or More Days</option>
+							</select>
+                        </div>
+                        <div class="form-group">
+							<label>💰 DRG Quintile Payment Average</label>
+							<input type="number"
+								   id="IP_DRG_QUINT_PMT_AVG"
+								   placeholder="Enter Average Payment"
+								   required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>🏷️ Insurance Type</label>
+                            <select id="insuranceType" required>
+                                <option value="">Select Insurance</option>
+                                <option value="Private">Private Insurance</option>
+                                <option value="Medicare">Medicare</option>
+                                <option value="Medicaid">Medicaid</option>
+                                <option value="Self">Self Pay</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>📝 Diagnosis Description</label>
+                        <textarea id="diagnosis" rows="3" placeholder="Brief description of diagnosis..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-submit">🔍 Analyze Claim for Fraud</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Result Section -->
+        <div class="result-card" id="resultCard">
+            <div id="resultContent"></div>
+        </div>
+
+        <div class="footer">
+            Jagran School of Engineering | Aditi Lohiya (2023BTHCSE002)
+        </div>
+    </div>
+
+    <script>
+        // Check login
+       
+        // Display user name
+        const userName = localStorage.getItem('userName') || 'User';
+        document.getElementById('userNameDisplay').innerHTML = `👤 ${userName}`;
+		// ==========================================
+// CLAIM FORM SUBMIT
+// ==========================================
+// ==========================================
+// CLAIM FORM SUBMIT
+// ==========================================
+
+document.getElementById('claimForm')
+.addEventListener('submit', async function(e) {
+
+    e.preventDefault();
+
+    // ==========================================
+    // CREATE PAYLOAD
+    // ==========================================
+
+    const claimData = {
+
+        IP_CLM_ID: document.getElementById('IP_CLM_ID').value,
+
+        BENE_SEX_IDENT_CD: parseInt(
+            document.getElementById('BENE_SEX_IDENT_CD').value
+        ),
+
+        BENE_AGE_CAT_CD: parseInt(
+            document.getElementById('BENE_AGE_CAT_CD').value
+        ),
+
+        IP_CLM_BASE_DRG_CD: parseInt(
+            document.getElementById('IP_CLM_BASE_DRG_CD').value
+        ),
+
+        IP_CLM_ICD9_PRCDR_CD: parseInt(
+            document.getElementById('IP_CLM_ICD9_PRCDR_CD').value
+        ),
+
+        IP_CLM_DAYS_CD: parseInt(
+            document.getElementById('IP_CLM_DAYS_CD').value
+        ),
+
+        IP_DRG_QUINT_PMT_AVG: parseFloat(
+            document.getElementById('IP_DRG_QUINT_PMT_AVG').value
+        ),
+
+        IP_DRG_QUINT_PMT_CD: parseInt(
+            document.getElementById('IP_DRG_QUINT_PMT_CD').value
+        )
+    };
+
+    console.log('Payload:', claimData);
+
+    try {
+
+        // ==========================================
+        // API REQUEST
+        // ==========================================
+
+        const response = await fetch('/predict', {
+
+            method: 'POST',
+
+            headers: {
+                'Content-Type': 'application/json'
+            },
+
+            body: JSON.stringify(claimData)
+        });
+
+        // ==========================================
+        // GET RESPONSE
+        // ==========================================
+
+        const result = await response.json();
+
+        console.log('API Result:', result);
+
+        // ==========================================
+        // RESULT ELEMENTS
+        // ==========================================
+
+        const resultCard =
+            document.getElementById('resultCard');
+
+        const resultContent =
+            document.getElementById('resultContent');
+
+        // ==========================================
+        // SHOW RESULT CARD
+        // ==========================================
+
+        resultCard.style.display = 'block';
+
+        resultCard.classList.add('show');
+
+        // ==========================================
+        // FRAUD STATUS
+        // ==========================================
+
+        const isFraud =
+            result.fraud_label === 'Fraud';
+
+        // ==========================================
+        // RESULT HTML
+        // ==========================================
+
+        resultContent.innerHTML = `
+
+<div class="fraud-result ${isFraud ? 'fraud' : 'normal'}">
+
+    <!-- STATUS -->
+    <div class="result-icon">
+        ${isFraud ? '🚨' : '✅'}
+    </div>
+
+    <div class="result-status">
+        ${result.fraud_label}
+    </div>
+
+    <div class="result-score">
+        Fraud Score: ${result.fraud_score}%
+    </div>
+
+    <!-- PROGRESS BAR -->
+
+    <div style="
+        width:100%;
+        background:#ddd;
+        border-radius:12px;
+        overflow:hidden;
+        height:32px;
+        margin-top:20px;
+        margin-bottom:25px;
+    ">
+
+        <div style="
+            width:${result.fraud_score}%;
+            background:${isFraud ? '#dc2626' : '#16a34a'};
+            height:100%;
+            color:white;
+            text-align:center;
+            line-height:32px;
+            font-weight:bold;
+            transition:0.5s;
+        ">
+
+            ${result.fraud_score}%
+
+        </div>
+
+    </div>
+
+    <!-- ANALYTICS GRID -->
+
+    <div style="
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:15px;
+        margin-top:20px;
+    ">
+
+        <div style="
+            background:white;
+            padding:15px;
+            border-radius:12px;
+            text-align:left;
+        ">
+            <h4>⚠️ Risk Level</h4>
+            <p>${result.risk_level}</p>
+        </div>
+
+        <div style="
+            background:white;
+            padding:15px;
+            border-radius:12px;
+            text-align:left;
+        ">
+            <h4>📊 Severity</h4>
+            <p>${result.anomaly_severity}</p>
+        </div>
+
+        <div style="
+            background:white;
+            padding:15px;
+            border-radius:12px;
+            text-align:left;
+        ">
+            <h4>💰 Financial Risk</h4>
+            <p>$${result.estimated_financial_risk}</p>
+        </div>
+
+        <div style="
+            background:white;
+            padding:15px;
+            border-radius:12px;
+            text-align:left;
+        ">
+            <h4>🧠 Confidence</h4>
+            <p>${result.confidence_level}%</p>
+        </div>
+
+        <div style="
+            background:white;
+            padding:15px;
+            border-radius:12px;
+            text-align:left;
+        ">
+            <h4>🏥 Complexity</h4>
+            <p>${result.claim_complexity}</p>
+        </div>
+
+        <div style="
+            background:white;
+            padding:15px;
+            border-radius:12px;
+            text-align:left;
+        ">
+            <h4>📌 Claim ID</h4>
+            <p>${result.IP_CLM_ID}</p>
+        </div>
+
+    </div>
+
+    <!-- RECOMMENDATION -->
+
+    <div class="result-details" style="margin-top:25px;">
+
+        <h4>💡 Recommended Action</h4>
+
+        <p style="
+            margin-top:10px;
+            font-weight:bold;
+            color:${isFraud ? '#dc2626' : '#16a34a'};
+        ">
+            ${result.recommended_action}
+        </p>
+
+    </div>
+
+    <!-- FRAUD INDICATORS -->
+
+    <div class="result-details" style="margin-top:20px;">
+
+        <h4>🚩 Fraud Indicators</h4>
+
+        <ul style="margin-top:15px;">
+
+            ${
+                result.fraud_indicators
+                .map(item => `
+                    <li style="margin-bottom:8px;">
+                        ${item}
+                    </li>
+                `)
+                .join('')
+            }
+
+        </ul>
+
+    </div>
+
+    <!-- FINAL MESSAGE -->
+
+    <div style="
+        margin-top:25px;
+        padding:15px;
+        border-radius:12px;
+        background:${isFraud ? '#fff1f2' : '#f0fdf4'};
+        color:${isFraud ? '#dc2626' : '#16a34a'};
+        font-weight:bold;
+    ">
+
+        ${
+            isFraud
+            ? '⚠️ Suspicious claim detected. Manual verification strongly recommended.'
+            : '✅ Claim appears normal based on PCA anomaly detection analysis.'
+        }
+
+    </div>
+
+</div>
+`;
+
+        // ==========================================
+        // AUTO SCROLL
+        // ==========================================
+
+        resultCard.scrollIntoView({
+            behavior: 'smooth'
+        });
+
+    }
+
+    catch(error) {
+
+        console.error(error);
+
+        alert('API Error');
+    }
+});
+    </script>
+</body>
+</html>
